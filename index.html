@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#22331f">
+<title>Willow Creek — A Cozy Pixel Farming Adventure</title>
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="game-shell">
+  <canvas id="game" aria-label="Willow Creek game world"></canvas>
+  <div id="vignette"></div>
+
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div class="panel status-panel">
+        <div class="date-row">
+          <span id="hud-day">Day 1</span>
+          <span id="hud-season">Spring</span>
+          <span id="hud-weather" title="Weather">☀️</span>
+        </div>
+        <div class="clock-row">
+          <span id="hud-clock">06:00</span>
+          <span id="hud-location">Willow Creek Farm</span>
+        </div>
+        <div class="money-row"><span class="coin">●</span> <b id="hud-money">500</b><span class="g">g</span></div>
+        <div class="energy-row">
+          <span class="bolt">⚡</span>
+          <div class="energy-bar"><i id="hud-energy"></i></div>
+          <span id="hud-energy-text">100</span>
+        </div>
+      </div>
+      <div id="quest-card" class="panel">
+        <div class="panel-title">✦ Quest</div>
+        <div id="quest-text">Meet Mayor Maple in town.</div>
+        <div id="quest-reward"></div>
+      </div>
+    </div>
+
+    <div id="hud-right">
+      <button id="btn-inventory" class="icon-btn" title="Inventory (B)">🎒</button>
+      <button id="btn-help" class="icon-btn" title="How to play (H)">?</button>
+      <button id="btn-sound" class="icon-btn" title="Toggle sound">♪</button>
+      <button id="btn-menu" class="icon-btn" title="Pause (Esc)">☰</button>
+    </div>
+
+    <div id="prompt" class="hidden"></div>
+    <div id="hotbar" aria-label="Tool hotbar"></div>
+
+    <div id="touch-controls">
+      <div id="joystick" aria-label="Movement joystick">
+        <div id="joystick-knob"></div>
+      </div>
+      <button id="btn-action" aria-label="Action">A</button>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <!-- Title screen -->
+  <div id="menu" class="overlay menu-overlay">
+    <div class="menu-shade"></div>
+    <div class="title-block">
+      <div class="title-kicker">A cozy pixel farming adventure</div>
+      <h1>Willow&nbsp;Creek</h1>
+      <div class="title-sub">FARM · FORAGE · FISH · FRIENDS</div>
+    </div>
+    <div class="menu-buttons">
+      <button id="btn-new" class="big-btn primary">New Game</button>
+      <button id="btn-continue" class="big-btn">Continue</button>
+      <button id="btn-how" class="big-btn small">How to Play</button>
+    </div>
+    <div class="menu-footer">
+      <span>WASD / arrows to move</span>
+      <span>E to act</span>
+      <span>1–6 tools</span>
+    </div>
+  </div>
+
+  <!-- Character creation -->
+  <div id="creation" class="overlay hidden">
+    <div class="creation-card panel">
+      <button id="btn-create-back" class="corner-close" aria-label="Back">✕</button>
+      <h2>Create your farmer</h2>
+      <div class="create-layout">
+        <div class="preview-wrap">
+          <canvas id="preview" width="168" height="216"></canvas>
+          <div class="preview-label" id="preview-label">Ready for the valley</div>
+        </div>
+        <div class="create-options">
+          <label class="field-label" for="farmer-name">Name</label>
+          <input id="farmer-name" maxlength="14" value="Farmer" autocomplete="off" spellcheck="false">
+
+          <div class="field-label">Gender</div>
+          <div class="segmented" id="gender-opts">
+            <button data-value="feminine">Feminine</button>
+            <button data-value="masculine">Masculine</button>
+            <button data-value="neutral">Neutral</button>
+          </div>
+
+          <div class="field-label">Outfit</div>
+          <div class="segmented" id="style-opts">
+            <button data-value="overalls">Overalls</button>
+            <button data-value="dress">Dress</button>
+            <button data-value="jacket">Jacket</button>
+          </div>
+
+          <div class="swatch-row"><span class="field-label">Skin</span><div id="skin-opts" class="swatches"></div></div>
+          <div class="swatch-row"><span class="field-label">Hair</span><div id="hair-opts" class="swatches"></div></div>
+          <div class="swatch-row"><span class="field-label">Clothes</span><div id="shirt-opts" class="swatches"></div></div>
+
+          <button id="btn-start" class="big-btn primary start-btn">Start Farming</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialogue -->
+  <div id="dialogue" class="overlay hidden">
+    <div class="dialogue-card panel">
+      <div class="portrait-wrap"><canvas id="portrait" width="128" height="128"></canvas></div>
+      <div class="dialogue-body">
+        <div class="dialogue-name"><span id="dlg-name">Mayor Maple</span><span id="dlg-role">Town Mayor</span></div>
+        <div id="dlg-hearts" class="hearts"></div>
+        <p id="dlg-text"></p>
+        <div class="dialogue-actions">
+          <button id="dlg-next" class="chip-btn primary">Next ▸</button>
+          <button id="dlg-gift" class="chip-btn">Give gift</button>
+          <button id="dlg-close" class="chip-btn ghost">Bye</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop / services -->
+  <div id="shop" class="overlay hidden">
+    <div class="shop-card panel">
+      <button id="shop-close" class="corner-close" aria-label="Close">✕</button>
+      <div class="shop-head">
+        <div class="shop-icon" id="shop-icon">🏪</div>
+        <div>
+          <h2 id="shop-title">General Store</h2>
+          <div id="shop-tagline">Fresh goods from the valley</div>
+        </div>
+        <div class="shop-money"><span class="coin">●</span> <b id="shop-money">500</b>g</div>
+      </div>
+      <div class="shop-tabs" id="shop-tabs">
+        <button data-tab="buy" class="active">Buy</button>
+        <button data-tab="sell">Sell</button>
+        <button data-tab="services">Services</button>
+      </div>
+      <div id="shop-grid" class="shop-grid"></div>
+      <div id="shop-hint" class="shop-hint"></div>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <div id="inventory" class="overlay hidden">
+    <div class="inventory-card panel">
+      <button id="inv-close" class="corner-close" aria-label="Close">✕</button>
+      <h2>🎒 Backpack</h2>
+      <div class="inv-sub">Click seeds to bind them to your seed pouch. Click food to eat it. Click a giftable item to hold it for gifting.</div>
+      <div id="inv-grid" class="inv-grid"></div>
+      <div class="inv-footer">
+        <span id="inv-money">500g</span>
+        <span id="inv-hint">B or Esc to close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fishing minigame -->
+  <div id="fishing" class="overlay hidden">
+    <div class="fishing-card panel">
+      <div class="fish-title" id="fish-title">Something is biting…</div>
+      <div class="fish-sub" id="fish-sub">Stop the marker in the green zone!</div>
+      <div class="fish-scene">
+        <canvas id="fish-canvas" width="360" height="120"></canvas>
+      </div>
+      <div class="catch-bar" id="catch-bar">
+        <div class="catch-zone" id="catch-zone"></div>
+        <div class="catch-marker" id="catch-marker"></div>
+      </div>
+      <button id="fish-hook" class="big-btn primary">HOOK IT!</button>
+      <div class="fish-timer"><i id="fish-timer-fill"></i></div>
+    </div>
+  </div>
+
+  <!-- Help -->
+  <div id="help" class="overlay hidden">
+    <div class="help-card panel">
+      <button id="help-close" class="corner-close" aria-label="Close">✕</button>
+      <h2>How to Play</h2>
+      <div class="help-grid">
+        <div>
+          <h3>Controls</h3>
+          <p><b>WASD / arrows</b> — walk<br><b>E / Space</b> — act, talk, harvest<br><b>1–6</b> — pick a tool<br><b>R</b> — cycle seeds<br><b>B</b> — backpack<br><b>Esc</b> — pause</p>
+          <p class="muted">On touch screens use the joystick and the <b>A</b> button. Tap the hotbar to switch tools.</p>
+        </div>
+        <div>
+          <h3>Your first days</h3>
+          <p>1. Take the <b>hoe</b> and till the soil south of the field sign.<br>
+          2. Buy seeds at the supermarket in town, select the <b>seed pouch</b> and plant.<br>
+          3. Water crops each day, then <b>sleep</b> at the farmhouse door.<br>
+          4. Harvest, then sell at the <b>shipping bin</b> beside the field.<br>
+          5. Fish at the river or beach, forage in the forest, and befriend the town.</p>
+        </div>
+        <div>
+          <h3>Money & energy</h3>
+          <p>Every action costs a little energy. Sleep at home to restore it. The clinic can heal you, the restaurant serves energy-rich meals, and the bar is a cozy place to unwind.</p>
+          <p class="muted">Crops only grow on days they are watered — unless it rains or you buy a sprinkler from the carpenter.</p>
+        </div>
+        <div>
+          <h3>Around town</h3>
+          <p>🏪 Supermarket · 🐄 Ranch · 🍺 Bar<br>🏥 Clinic · 🍲 Restaurant · 🔨 Blacksmith<br>🪚 Carpenter · 🏛 Town Hall</p>
+          <p class="muted">The carpenter upgrades your house and farm. The blacksmith improves your tools. The town hall has a daily mail parcel.</p>
+        </div>
+      </div>
+      <button id="help-ok" class="big-btn primary">Got it</button>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pause" class="overlay hidden">
+    <div class="pause-card panel">
+      <h2>Paused</h2>
+      <button id="pause-resume" class="big-btn primary">Resume</button>
+      <button id="pause-save" class="big-btn">Save game</button>
+      <button id="pause-help" class="big-btn small">How to play</button>
+      <button id="pause-quit" class="big-btn small danger">Save &amp; return to title</button>
+      <div class="muted small-note">Willow Creek autosaves when you sleep.</div>
+    </div>
+  </div>
+
+  <!-- Day transition -->
+  <div id="day-overlay" class="overlay hidden">
+    <div class="day-card">
+      <div class="day-kicker" id="day-kicker">A new morning</div>
+      <h2 id="day-title">Day 2</h2>
+      <div id="day-weather" class="day-weather">☀️ Sunny</div>
+      <div id="day-summary" class="day-summary"></div>
+    </div>
+  </div>
+
+  <div id="fade"></div>
+  <div id="version-tag">v1.0 · made for the valley</div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
